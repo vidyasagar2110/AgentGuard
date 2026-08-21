@@ -1,0 +1,25 @@
+# Environment / secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+
+# ML
+*.pkl
+*.joblib
+
+# OS
+.DS_Store
+Thumbs.db
