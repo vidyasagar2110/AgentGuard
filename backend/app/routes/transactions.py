@@ -3,13 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.agent import Agent
-from app.models.policy import AgentPolicy
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
     TransactionEvaluate,
     TransactionResponse,
 )
-from app.services.risk_engine import evaluate_transaction
+from app.services.risk_aggregator import assess_transaction_risk
 
 
 router = APIRouter(
@@ -39,27 +38,23 @@ def evaluate(
             detail="Agent not found"
         )
 
-    policy = (
-        db.query(AgentPolicy)
-        .filter(
-            AgentPolicy.agent_id
-            == transaction_data.agent_id
-        )
-        .first()
+    if agent.status in {"RESTRICTED", "SUSPENDED"}:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Agent is {agent.status} and cannot process transactions"
     )
-
-    if not policy:
+    try:
+        result = assess_transaction_risk(
+            db=db,
+            agent_id=transaction_data.agent_id,
+            amount=transaction_data.amount,
+            category=transaction_data.category
+        )
+    except ValueError as error:
         raise HTTPException(
             status_code=404,
-            detail="Policy not found for this agent"
+            detail=str(error)
         )
-
-    result = evaluate_transaction(
-        db=db,
-        policy=policy,
-        amount=transaction_data.amount,
-        category=transaction_data.category
-    )
 
     transaction = Transaction(
         agent_id=transaction_data.agent_id,

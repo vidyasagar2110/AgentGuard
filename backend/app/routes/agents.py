@@ -3,7 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.agent import Agent
-from app.schemas.agent import AgentCreate, AgentResponse
+from app.schemas.agent import (
+    AgentCreate,
+    AgentResponse,
+    AgentStatusUpdate
+)
 
 
 router = APIRouter(
@@ -70,5 +74,30 @@ def get_agent(
             status_code=404,
             detail="Agent not found"
         )
+
+    return agent
+
+
+@router.patch(
+    "/{agent_id}/status",
+    response_model=AgentResponse
+)
+def update_agent_status(
+    agent_id: int,
+    status_data: AgentStatusUpdate,
+    db: Session = Depends(get_db)
+):
+    agent = db.get(Agent, agent_id)
+
+    if not agent:
+        raise HTTPException(
+            status_code=404,
+            detail="Agent not found"
+        )
+
+    agent.status = status_data.status.value
+
+    db.commit()
+    db.refresh(agent)
 
     return agent
