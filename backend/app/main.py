@@ -6,7 +6,9 @@ from app.routes.transactions import router as transactions_router
 from app.routes.transaction_history import (
     router as transaction_history_router
 )
-
+from app.routes.behavior import router as behavior_router
+from app.routes.anomalies import router as anomalies_router
+from app.routes.risk import router as risk_router
 
 app = FastAPI(
     title="AgentGuard API",
@@ -18,6 +20,9 @@ app.include_router(agents_router)
 app.include_router(policies_router)
 app.include_router(transactions_router)
 app.include_router(transaction_history_router)
+app.include_router(behavior_router)
+app.include_router(anomalies_router)
+app.include_router(risk_router)
 
 
 @app.get("/health")
