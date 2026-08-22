@@ -20,3 +20,18 @@ class TransactionResponse(BaseModel):
     evaluated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class RiskFactor(BaseModel):
+    type: str
+    severity: str
+    message: str
+
+
+class TransactionExplanation(BaseModel):
+    transaction_id: int
+    decision: str
+    risk_score: int
+    summary: str
+    risk_factors: list[RiskFactor]
+    evaluated_at: datetime
