@@ -10,6 +10,9 @@ from app.routes.behavior import router as behavior_router
 from app.routes.anomalies import router as anomalies_router
 from app.routes.risk import router as risk_router
 from app.routes.dashboard import router as dashboard_router
+from app.routes.trust import router as trust_router
+from app.routes.profile import router as profile_router
+from app.routes.security_events import router as security_events_router
 
 app = FastAPI(
     title="AgentGuard API",
@@ -25,6 +28,9 @@ app.include_router(behavior_router)
 app.include_router(anomalies_router)
 app.include_router(risk_router)
 app.include_router(dashboard_router)
+app.include_router(trust_router)
+app.include_router(profile_router)
+app.include_router(security_events_router)
 
 @app.get("/health")
 def health_check():

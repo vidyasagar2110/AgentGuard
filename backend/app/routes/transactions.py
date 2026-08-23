@@ -9,6 +9,7 @@ from app.schemas.transaction import (
     TransactionResponse,
 )
 from app.services.risk_aggregator import assess_transaction_risk
+from app.services.security_event_service import create_security_event
 
 
 router = APIRouter(
@@ -41,8 +42,12 @@ def evaluate(
     if agent.status in {"RESTRICTED", "SUSPENDED"}:
         raise HTTPException(
             status_code=403,
-            detail=f"Agent is {agent.status} and cannot process transactions"
-    )
+            detail=(
+                f"Agent is {agent.status} "
+                "and cannot process transactions"
+            )
+        )
+
     try:
         result = assess_transaction_risk(
             db=db,
@@ -50,6 +55,7 @@ def evaluate(
             amount=transaction_data.amount,
             category=transaction_data.category
         )
+
     except ValueError as error:
         raise HTTPException(
             status_code=404,
@@ -62,12 +68,60 @@ def evaluate(
         category=transaction_data.category,
         decision=result["decision"],
         risk_score=result["risk_score"],
-        reasons=",".join(result["reasons"])
-        if result["reasons"]
-        else None,
+        reasons=(
+            ",".join(result["reasons"])
+            if result["reasons"]
+            else None
+        ),
     )
 
     db.add(transaction)
+    db.flush()
+
+    if result["decision"] == "BLOCK":
+        create_security_event(
+            db=db,
+            agent_id=transaction.agent_id,
+            transaction_id=transaction.id,
+            event_type="TRANSACTION_BLOCKED",
+            severity="HIGH",
+            message=(
+                "Transaction was blocked by "
+                "the risk assessment engine"
+            )
+        )
+
+    elif result["decision"] == "REVIEW":
+        create_security_event(
+            db=db,
+            agent_id=transaction.agent_id,
+            transaction_id=transaction.id,
+            event_type="TRANSACTION_REVIEW",
+            severity="MEDIUM",
+            message=(
+                "Transaction requires additional "
+                "review before approval"
+            )
+        )
+
+    if result.get("anomaly_detected"):
+        anomaly_severity = (
+            result.get("anomaly_severity")
+            or "MEDIUM"
+        )
+
+        create_security_event(
+            db=db,
+            agent_id=transaction.agent_id,
+            transaction_id=transaction.id,
+            event_type="ANOMALY_DETECTED",
+            severity=anomaly_severity,
+            message=(
+                "Transaction anomaly detected "
+                "by the risk assessment engine"
+            )
+        )
+
     db.commit()
     db.refresh(transaction)
 
