@@ -10,6 +10,7 @@ from app.schemas.transaction import (
 )
 from app.services.risk_aggregator import assess_transaction_risk
 from app.services.security_event_service import create_security_event
+from app.services.audit_log_service import create_audit_log
 
 
 router = APIRouter(
@@ -77,6 +78,19 @@ def evaluate(
 
     db.add(transaction)
     db.flush()
+
+    create_audit_log(
+        db=db,
+        action="TRANSACTION_EVALUATED",
+        entity_type="TRANSACTION",
+        entity_id=transaction.id,
+        agent_id=transaction.agent_id,
+        transaction_id=transaction.id,
+        details=(
+            f"Decision: {transaction.decision}, "
+            f"Risk Score: {transaction.risk_score}"
+        )
+    )
 
     if result["decision"] == "BLOCK":
         create_security_event(

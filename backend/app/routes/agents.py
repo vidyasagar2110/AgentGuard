@@ -8,6 +8,7 @@ from app.schemas.agent import (
     AgentResponse,
     AgentStatusUpdate
 )
+from app.services.audit_log_service import create_audit_log
 
 
 router = APIRouter(
@@ -95,7 +96,22 @@ def update_agent_status(
             detail="Agent not found"
         )
 
-    agent.status = status_data.status.value
+    previous_status = agent.status
+    new_status = status_data.status.value
+
+    agent.status = new_status
+
+    create_audit_log(
+        db=db,
+        action="AGENT_STATUS_CHANGED",
+        entity_type="AGENT",
+        entity_id=agent.id,
+        agent_id=agent.id,
+        details=(
+            f"Agent status changed "
+            f"from {previous_status} to {new_status}"
+        )
+    )
 
     db.commit()
     db.refresh(agent)
