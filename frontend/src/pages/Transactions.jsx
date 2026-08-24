@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://127.0.0.1:8000";
 
 function Transactions() {
+  const navigate = useNavigate();
+
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,9 +23,6 @@ function Transactions() {
 
       const data = await response.json();
 
-      // Backend may return either:
-      // 1. An array directly
-      // 2. { value: [...] }
       const transactionData = Array.isArray(data)
         ? data
         : data.value || [];
@@ -78,6 +78,15 @@ function Transactions() {
     if (score >= 70) return "risk-high";
     if (score >= 40) return "risk-medium";
     return "risk-low";
+  };
+
+  const formatCategory = (category) => {
+    if (!category) return "—";
+
+    return (
+      category.charAt(0).toUpperCase() +
+      category.slice(1).toLowerCase()
+    );
   };
 
   if (loading) {
@@ -288,10 +297,15 @@ function Transactions() {
           {transactions.length === 0 ? (
 
             <div className="empty-state">
-              <h3>No transactions found</h3>
+
+              <h3>
+                No transactions found
+              </h3>
+
               <p>
                 No transaction records are currently available.
               </p>
+
             </div>
 
           ) : (
@@ -319,33 +333,58 @@ function Transactions() {
 
                   <tr key={transaction.id}>
 
+                    {/* CLICKABLE TRANSACTION ID */}
+
                     <td>
-                      <span className="transaction-id">
+
+                      <button
+                        className="transaction-id transaction-link"
+                        onClick={() =>
+                          navigate(
+                            `/transactions/${transaction.id}`
+                          )
+                        }
+                      >
                         #{transaction.id}
-                      </span>
+                      </button>
+
                     </td>
 
 
+                    {/* AGENT */}
+
                     <td>
+
                       <span className="agent-reference">
                         Agent {transaction.agent_id}
                       </span>
+
                     </td>
 
 
+                    {/* AMOUNT */}
+
                     <td>
+
                       <strong className="amount">
                         {formatAmount(transaction.amount)}
                       </strong>
+
                     </td>
 
+
+                    {/* CATEGORY */}
 
                     <td>
+
                       <span className="category-badge">
-                        {transaction.category || "—"}
+                        {formatCategory(transaction.category)}
                       </span>
+
                     </td>
 
+
+                    {/* DECISION */}
 
                     <td>
 
@@ -360,6 +399,8 @@ function Transactions() {
                     </td>
 
 
+                    {/* RISK SCORE */}
+
                     <td>
 
                       <span
@@ -373,8 +414,14 @@ function Transactions() {
                     </td>
 
 
+                    {/* DATE */}
+
                     <td className="date-cell">
-                      {formatDate(transaction.evaluated_at)}
+
+                      {formatDate(
+                        transaction.evaluated_at
+                      )}
+
                     </td>
 
                   </tr>
@@ -431,7 +478,7 @@ function Transactions() {
                   </strong>
 
                   <span>
-                    {transaction.category || "Unknown"} •{" "}
+                    {formatCategory(transaction.category)} •{" "}
                     {formatAmount(transaction.amount)}
                   </span>
 
@@ -456,9 +503,11 @@ function Transactions() {
 
                   {transaction.reasons.map(
                     (reason, index) => (
+
                       <li key={index}>
                         {reason}
                       </li>
+
                     )
                   )}
 

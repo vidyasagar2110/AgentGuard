@@ -8,6 +8,9 @@ function AgentDetails() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [transactionSummary, setTransactionSummary] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -16,20 +19,52 @@ function AgentDetails() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${API_BASE_URL}/agents/${agentId}/risk-profile`
-      );
+      const [
+        profileResponse,
+        transactionsResponse,
+        summaryResponse,
+      ] = await Promise.all([
+        fetch(
+          `${API_BASE_URL}/agents/${agentId}/risk-profile`
+        ),
+        fetch(
+          `${API_BASE_URL}/transactions/agent/${agentId}`
+        ),
+        fetch(
+          `${API_BASE_URL}/transactions/agent/${agentId}/summary`
+        ),
+      ]);
 
-      if (!response.ok) {
-        throw new Error("Failed to load agent profile");
+      if (
+        !profileResponse.ok ||
+        !transactionsResponse.ok ||
+        !summaryResponse.ok
+      ) {
+        throw new Error(
+          "Failed to load agent intelligence"
+        );
       }
 
-      const data = await response.json();
+      const profileData = await profileResponse.json();
+      const transactionData =
+        await transactionsResponse.json();
+      const summaryData =
+        await summaryResponse.json();
 
-      setProfile(data);
+      setProfile(profileData);
+
+setTransactions(
+  Array.isArray(transactionData)
+    ? transactionData
+    : transactionData.value || []
+);
+
+setTransactionSummary(summaryData); 
     } catch (err) {
       console.error(err);
-      setError("Unable to load agent intelligence.");
+      setError(
+        "Unable to load agent intelligence."
+      );
     } finally {
       setLoading(false);
     }
@@ -38,6 +73,43 @@ function AgentDetails() {
   useEffect(() => {
     loadProfile();
   }, [agentId]);
+
+  const formatAmount = (amount) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    }).format(amount);
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+
+  const getDecisionClass = (decision) => {
+    if (decision === "ALLOW") {
+      return "decision-allow";
+    }
+
+    if (decision === "REVIEW") {
+      return "decision-review";
+    }
+
+    return "decision-block";
+  };
+
+  const getRiskClass = (score) => {
+    if (score >= 70) {
+      return "risk-high";
+    }
+
+    if (score >= 40) {
+      return "risk-medium";
+    }
+
+    return "risk-low";
+  };
 
   if (loading) {
     return (
@@ -192,11 +264,13 @@ function AgentDetails() {
           </strong>
 
           <div className="large-trust-bar">
+
             <div
               style={{
                 width: `${profile.trust_score}%`,
               }}
             ></div>
+
           </div>
 
           <span className="intelligence-description">
@@ -249,6 +323,7 @@ function AgentDetails() {
         <div className="panel-header">
 
           <div>
+
             <h3>
               Behavioral Intelligence
             </h3>
@@ -256,6 +331,7 @@ function AgentDetails() {
             <p>
               Transaction behavior and spending patterns.
             </p>
+
           </div>
 
         </div>
@@ -265,45 +341,263 @@ function AgentDetails() {
 
           <div className="behavior-item">
             <span>Total Spending</span>
+
             <strong>
               ₹{profile.total_spending.toLocaleString("en-IN")}
             </strong>
           </div>
 
+
           <div className="behavior-item">
             <span>Average Transaction</span>
+
             <strong>
               ₹{profile.average_transaction.toLocaleString("en-IN")}
             </strong>
           </div>
 
+
           <div className="behavior-item">
             <span>Maximum Transaction</span>
+
             <strong>
               ₹{profile.maximum_transaction.toLocaleString("en-IN")}
             </strong>
           </div>
 
+
           <div className="behavior-item">
             <span>Blocked Transactions</span>
+
             <strong className="danger-number">
               {profile.blocked_transactions}
             </strong>
           </div>
 
+
           <div className="behavior-item">
             <span>Review Transactions</span>
+
             <strong className="warning-number">
               {profile.review_transactions}
             </strong>
           </div>
 
+
           <div className="behavior-item">
             <span>Allowed Transactions</span>
+
             <strong className="success-number">
               {profile.allowed_transactions}
             </strong>
           </div>
+
+        </div>
+
+      </section>
+
+
+      {/* TRANSACTION ACTIVITY */}
+
+      <section className="panel transaction-activity-panel">
+
+        <div className="panel-header">
+
+          <div>
+
+            <h3>
+              Transaction Activity
+            </h3>
+
+            <p>
+              Transactions evaluated by the AgentGuard risk engine.
+            </p>
+
+          </div>
+
+          <span className="security-badge">
+            {transactions.length} Records
+          </span>
+
+        </div>
+
+
+        {/* TRANSACTION SUMMARY */}
+
+        {transactionSummary && (
+
+          <div className="transaction-summary-grid">
+
+            <div className="transaction-summary-card">
+
+              <span>
+                Total Spending
+              </span>
+
+              <strong>
+                {formatAmount(
+                  transactionSummary.total_spending
+                )}
+              </strong>
+
+            </div>
+
+
+            <div className="transaction-summary-card">
+
+              <span>
+                Average Transaction
+              </span>
+
+              <strong>
+                {formatAmount(
+                  transactionSummary.average_transaction
+                )}
+              </strong>
+
+            </div>
+
+
+            <div className="transaction-summary-card">
+
+              <span>
+                Allowed
+              </span>
+
+              <strong className="success-number">
+                {transactionSummary.allowed_transactions}
+              </strong>
+
+            </div>
+
+
+            <div className="transaction-summary-card">
+
+              <span>
+                Review
+              </span>
+
+              <strong className="warning-number">
+                {transactionSummary.review_transactions}
+              </strong>
+
+            </div>
+
+
+            <div className="transaction-summary-card">
+
+              <span>
+                Blocked
+              </span>
+
+              <strong className="danger-number">
+                {transactionSummary.blocked_transactions}
+              </strong>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* TRANSACTION TABLE */}
+
+        <div className="transaction-table-wrapper">
+
+          <table className="transaction-table">
+
+            <thead>
+
+              <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Decision</th>
+                <th>Risk</th>
+                <th>Evaluated At</th>
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              {transactions.map((transaction) => (
+
+                <tr key={transaction.id}>
+
+                  <td>
+
+                    <span className="transaction-id">
+                      #{transaction.id}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong className="amount">
+                      {formatAmount(
+                        transaction.amount
+                      )}
+                    </strong>
+
+                  </td>
+
+
+                  <td>
+  <span className="category-badge">
+    {transaction.category
+      ? transaction.category.charAt(0).toUpperCase() +
+        transaction.category.slice(1).toLowerCase()
+      : "—"}
+  </span>
+</td>
+
+
+                  <td>
+
+                    <span
+                      className={`decision-badge ${getDecisionClass(
+                        transaction.decision
+                      )}`}
+                    >
+                      {transaction.decision}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      className={`risk-score ${getRiskClass(
+                        transaction.risk_score
+                      )}`}
+                    >
+                      {transaction.risk_score}
+                    </span>
+
+                  </td>
+
+
+                  <td className="date-cell">
+
+                    {formatDate(
+                      transaction.evaluated_at
+                    )}
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
 
         </div>
 
@@ -317,6 +611,7 @@ function AgentDetails() {
         <div className="panel-header">
 
           <div>
+
             <h3>
               Risk Metrics
             </h3>
@@ -324,6 +619,7 @@ function AgentDetails() {
             <p>
               Current transaction decision rates.
             </p>
+
           </div>
 
         </div>
@@ -332,23 +628,36 @@ function AgentDetails() {
         <div className="metrics-grid">
 
           <div className="metric-card danger-metric">
-            <span>Block Rate</span>
+
+            <span>
+              Block Rate
+            </span>
 
             <strong>
               {profile.block_rate}%
             </strong>
+
           </div>
 
+
           <div className="metric-card warning-metric">
-            <span>Review Rate</span>
+
+            <span>
+              Review Rate
+            </span>
 
             <strong>
               {profile.review_rate}%
             </strong>
+
           </div>
 
+
           <div className="metric-card success-metric">
-            <span>Allow Rate</span>
+
+            <span>
+              Allow Rate
+            </span>
 
             <strong>
               {(
@@ -357,6 +666,7 @@ function AgentDetails() {
                 profile.review_rate
               ).toFixed(2)}%
             </strong>
+
           </div>
 
         </div>
@@ -371,6 +681,7 @@ function AgentDetails() {
         <div className="panel-header">
 
           <div>
+
             <h3>
               Security Recommendation
             </h3>
@@ -378,6 +689,7 @@ function AgentDetails() {
             <p>
               Recommendation generated by the AgentGuard risk engine.
             </p>
+
           </div>
 
           <span className="security-badge">
@@ -418,6 +730,7 @@ function AgentDetails() {
         <div className="panel-header">
 
           <div>
+
             <h3>
               Risk Assessment Reasons
             </h3>
@@ -425,6 +738,7 @@ function AgentDetails() {
             <p>
               Factors contributing to the current risk score.
             </p>
+
           </div>
 
         </div>

@@ -1742,3 +1742,375 @@
   }
 
 }
+
+/* =========================================
+   AGENT TRANSACTION ACTIVITY
+========================================= */
+
+.transaction-activity-panel {
+  margin-bottom: 20px;
+}
+
+.transaction-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.transaction-summary-card {
+  background: #111827;
+  border: 1px solid #1b2330;
+  border-radius: 8px;
+  padding: 13px;
+}
+
+.transaction-summary-card span {
+  display: block;
+  color: #718096;
+  font-size: 10px;
+  margin-bottom: 7px;
+}
+
+.transaction-summary-card strong {
+  color: #f8fafc;
+  font-size: 15px;
+}
+
+.transaction-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #1b2330;
+  border-radius: 8px;
+}
+
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.transaction-table th {
+  background: #111722;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #202938;
+}
+
+.transaction-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #1b2330;
+  color: #aeb8c8;
+  font-size: 11px;
+}
+
+.transaction-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.transaction-table tbody tr:hover {
+  background: #111722;
+}
+
+.transaction-id {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.amount {
+  color: #f8fafc;
+}
+
+.category-badge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: #1e293b;
+  color: #cbd5e1;
+  font-size: 9px;
+}
+
+.decision-badge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.decision-allow {
+  background: #052e16;
+  color: #4ade80;
+}
+
+.decision-review {
+  background: #422006;
+  color: #fbbf24;
+}
+
+.decision-block {
+  background: #450a0a;
+  color: #f87171;
+}
+
+.risk-score {
+  font-weight: 800;
+}
+
+.date-cell {
+  white-space: nowrap;
+  color: #718096 !important;
+}
+
+@media (max-width: 1100px) {
+  .transaction-summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .transaction-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.transaction-explanation-summary {
+  padding: 32px;
+}
+
+.explanation-summary-content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #202938;
+}
+
+.explanation-summary-content > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transaction-summary-message {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 28px;
+  padding: 22px;
+  border-radius: 12px;
+  background: #111827;
+}
+
+.transaction-summary-message p {
+  margin: 8px 0 0;
+  color: #8fa3c2;
+}
+
+.risk-factor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.risk-factor-item {
+  display: flex;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #111827;
+  border: 1px solid #202938;
+}
+
+.risk-factor-number {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #172033;
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.risk-factor-content {
+  flex: 1;
+}
+
+.risk-factor-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.risk-factor-content p {
+  margin: 10px 0 0;
+  color: #b8c7dd;
+}
+
+.severity-badge {
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.severity-high {
+  background: #450a0a;
+  color: #ff6b6b;
+}
+
+.severity-medium {
+  background: #422006;
+  color: #fbbf24;
+}
+
+.severity-low {
+  background: #052e16;
+  color: #4ade80;
+}
+
+@media (max-width: 800px) {
+  .explanation-summary-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.icon-allow {
+  background: rgba(0, 180, 80, 0.2);
+  color: #32e875;
+}
+
+.icon-review {
+  background: rgba(255, 170, 0, 0.2);
+  color: #ffb000;
+}
+
+.icon-block {
+  background: rgba(220, 30, 30, 0.25);
+  color: #ff6666;
+}
+
+.review-icon {
+  color: #ffb000;
+  background: rgba(255, 176, 0, 0.12);
+}
+.review-number {
+  color: #ffb000;
+}
+
+
+/* =========================================================
+   TRANSACTION STATS — REVIEW COLOUR + ALIGNMENT FIX
+   ========================================================= */
+
+.stats-grid .stat-card:nth-child(3) .stat-icon,
+.stat-icon.yellow,
+.stat-icon.review-icon {
+  background: rgba(255, 176, 0, 0.15) !important;
+  color: #ffb000 !important;
+}
+
+.stats-grid .stat-card:nth-child(3) .stat-value,
+.review-number {
+  color: #ffb000 !important;
+}
+
+/* Keep all stat icons consistently aligned */
+.stats-grid .stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stats-grid .stat-icon {
+  flex-shrink: 0;
+}
+
+/* Consistent stat-card spacing */
+.stats-grid .stat-value {
+  line-height: 1.1;
+}
+
+.stats-grid .stat-details {
+  min-height: 16px;
+  align-items: center;
+}
+
+/* Transaction explanation summary */
+.transaction-explanation-summary {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.explanation-summary-content {
+  align-items: start;
+}
+
+.explanation-summary-content > div {
+  min-width: 0;
+}
+
+.transaction-summary-message {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Risk factor rows stay neatly aligned */
+.risk-factor-item {
+  align-items: flex-start;
+}
+
+.risk-factor-number {
+  flex-shrink: 0;
+}
+
+.risk-factor-header {
+  min-height: 28px;
+}
+
+/* Buttons stay aligned on transaction detail pages */
+.page-header .agent-detail-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Mobile alignment */
+@media (max-width: 800px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header .agent-detail-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .explanation-summary-content {
+    grid-template-columns: 1fr;
+  }
+
+  .transaction-summary-message {
+    align-items: flex-start;
+  }
+}
+
+.transaction-id-button {
+  background: transparent;
+  border: none;
+  color: #4f9cff;
+  font-weight: 700;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.transaction-id-button:hover {
+  text-decoration: underline;
+  color: #79b5ff;
+}
