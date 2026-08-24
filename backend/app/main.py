@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.agents import router as agents_router
 from app.routes.policies import router as policies_router
@@ -18,11 +19,26 @@ from app.routes.security_monitoring import (
     router as security_monitoring_router
 )
 
+
 app = FastAPI(
     title="AgentGuard API",
     description="AI Risk and Policy Manager for Agentic Payments",
     version="0.3.0"
 )
+
+
+# Allow the React frontend to communicate with FastAPI
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 app.include_router(agents_router)
 app.include_router(policies_router)

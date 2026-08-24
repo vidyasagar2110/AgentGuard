@@ -14,6 +14,7 @@ import Transactions from "./pages/Transactions";
 import SecurityEvents from "./pages/SecurityEvents";
 import AuditLogs from "./pages/AuditLogs";
 import AgentsPage from "./AgentsPage";
+import AgentDetails from "./pages/AgentDetails";
 const API_URL = "http://127.0.0.1:8000";
 
 
@@ -139,9 +140,9 @@ function Layout() {
           />
 
          <Route
-  path="/agents"
-  element={<AgentsPage />}
-/>
+            path="/agents"
+            element={<AgentsPage />}
+          />
 
           <Route
             path="/transactions"
@@ -156,6 +157,11 @@ function Layout() {
           <Route
             path="/audit-logs"
             element={<AuditLogs />}
+          />
+
+          <Route
+            path="/agents/:agentId"
+            element={<AgentDetails />}
           />
 
         </Routes>
