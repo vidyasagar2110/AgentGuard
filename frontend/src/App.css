@@ -921,3 +921,478 @@
     padding: 18px;
   }
 }
+
+/* =========================
+   Agents Page
+========================= */
+
+.page-content {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 30px;
+  color: #f8fafc;
+}
+
+.agent-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: #0d111a;
+  border: 1px solid #202938;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.summary-card span {
+  display: block;
+  color: #7f8ba3;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.summary-card strong {
+  font-size: 28px;
+  color: #f8fafc;
+}
+
+.danger-number {
+  color: #f87171 !important;
+}
+
+.warning-number {
+  color: #fbbf24 !important;
+}
+
+.success-number {
+  color: #4ade80 !important;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.agents-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.agents-table th {
+  text-align: left;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 14px 10px;
+  border-bottom: 1px solid #202938;
+}
+
+.agents-table td {
+  padding: 18px 10px;
+  border-bottom: 1px solid #1b2330;
+  color: #aeb8c8;
+  font-size: 12px;
+}
+
+.agents-table tbody tr:hover {
+  background: #111722;
+}
+
+.agent-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.agent-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #172554;
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.agent-name strong {
+  display: block;
+  color: #f1f5f9;
+  font-size: 13px;
+}
+
+.agent-name small {
+  display: block;
+  color: #596579;
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.risk-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.risk-badge.high {
+  background: #450a0a;
+  color: #f87171;
+}
+
+.risk-badge.medium {
+  background: #422006;
+  color: #fbbf24;
+}
+
+.risk-badge.low {
+  background: #052e16;
+  color: #4ade80;
+}
+
+.status-badge.monitored {
+  background: #422006;
+  color: #fbbf24;
+}
+
+.status-badge.trusted {
+  background: #052e16;
+  color: #4ade80;
+}
+
+.status-badge.restricted {
+  background: #450a0a;
+  color: #f87171;
+}
+
+.status-badge.suspended {
+  background: #450a0a;
+  color: #f87171;
+}
+
+.trust-score {
+  min-width: 100px;
+}
+
+.trust-score strong {
+  display: block;
+  color: #f1f5f9;
+  margin-bottom: 6px;
+}
+
+.trust-bar {
+  width: 80px;
+  height: 4px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.trust-bar div {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 10px;
+}
+
+.blocked-count {
+  color: #f87171;
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: #667085;
+}
+
+.page-loading,
+.page-error {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.page-error h2 {
+  color: #f8fafc;
+  margin: 15px 0 7px;
+}
+
+.page-error button {
+  margin-top: 15px;
+  border: 0;
+  background: #2563eb;
+  color: white;
+  padding: 9px 18px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.page-error button:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 1000px) {
+  .agent-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .agent-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+}
+/* Security Events */
+
+.security-events-summary {
+  margin-bottom: 20px;
+}
+
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.severity-high {
+  background: #450a0a;
+  color: #f87171;
+  border: 1px solid #7f1d1d;
+}
+
+.severity-medium {
+  background: #422006;
+  color: #fbbf24;
+  border: 1px solid #78350f;
+}
+
+.severity-low {
+  background: #052e16;
+  color: #4ade80;
+  border: 1px solid #14532d;
+}
+
+.event-message {
+  max-width: 300px;
+  color: #9ca8bb;
+  line-height: 1.5;
+}
+
+.security-activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.security-activity {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #1b2330;
+}
+
+.security-activity:last-child {
+  border-bottom: 0;
+}
+
+.activity-indicator {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.activity-header strong {
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+.activity-content p {
+  color: #9ca8bb;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 7px;
+}
+
+.activity-meta {
+  color: #596579;
+  font-size: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 45px 20px;
+}
+
+.empty-state h3 {
+  color: #e5e7eb;
+  margin: 0 0 7px;
+}
+
+.empty-state p {
+  color: #667085;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .event-message {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 700px) {
+  .event-message {
+    max-width: 150px;
+  }
+}
+
+/* Audit Logs */
+
+.audit-action {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.audit-transaction {
+  background: #172554;
+  color: #60a5fa;
+  border: 1px solid #1e3a8a;
+}
+
+.audit-agent {
+  background: #052e16;
+  color: #4ade80;
+  border: 1px solid #14532d;
+}
+
+.audit-default {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+}
+
+.audit-timeline-panel {
+  margin-top: 20px;
+}
+
+.audit-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.audit-timeline-item {
+  display: flex;
+  gap: 14px;
+  padding: 17px 0;
+  border-bottom: 1px solid #1b2330;
+}
+
+.audit-timeline-item:last-child {
+  border-bottom: 0;
+}
+
+.audit-timeline-icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.audit-timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.audit-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 6px;
+}
+
+.audit-timeline-header strong {
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+.audit-time {
+  color: #596579;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.audit-timeline-content p {
+  color: #9ca8bb;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 7px;
+}
+
+@media (max-width: 700px) {
+  .audit-timeline-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
