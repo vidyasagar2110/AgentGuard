@@ -109,6 +109,7 @@ function AgentDetails() {
   }
 
   const anomalies = anomalyReport?.anomalies || [];
+
   const highAnomalies = anomalies.filter(
     (anomaly) => anomaly.severity === "HIGH"
   ).length;
@@ -472,9 +473,7 @@ function AgentDetails() {
         {anomalies.length === 0 ? (
 
           <div className="empty-state">
-
             No transaction anomalies detected.
-
           </div>
 
         ) : (
@@ -491,9 +490,7 @@ function AgentDetails() {
               >
 
                 <div className="anomaly-icon">
-
                   {getSeverityIcon(anomaly.severity)}
-
                 </div>
 
 
@@ -503,9 +500,16 @@ function AgentDetails() {
 
                     <div>
 
-                      <strong>
+                      <button
+                        className="anomaly-transaction-link"
+                        onClick={() =>
+                          navigate(
+                            `/transactions/${anomaly.transaction_id}`
+                          )
+                        }
+                      >
                         Transaction #{anomaly.transaction_id}
-                      </strong>
+                      </button>
 
                       <span className="anomaly-type">
                         {anomaly.anomaly_type.replace(

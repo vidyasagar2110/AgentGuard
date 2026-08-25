@@ -2345,3 +2345,18 @@
   color: #4ade80;
   border: 1px solid #166534;
 }
+.anomaly-transaction-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.anomaly-transaction-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
