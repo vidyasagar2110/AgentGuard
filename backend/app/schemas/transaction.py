@@ -33,5 +33,6 @@ class TransactionExplanation(BaseModel):
     decision: str
     risk_score: int
     summary: str
+    ai_explanation: str | None = None
     risk_factors: list[RiskFactor]
     evaluated_at: datetime

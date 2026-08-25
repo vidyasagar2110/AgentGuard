@@ -6,8 +6,9 @@ from app.models.agent import Agent
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
     TransactionResponse,
-    TransactionExplanation
+    TransactionExplanation,
 )
+from app.services.explanation_service import generate_ai_explanation
 
 
 router = APIRouter(
@@ -39,6 +40,10 @@ def transaction_to_response(
     }
 
 
+# ============================================================
+# GET ALL TRANSACTIONS
+# ============================================================
+
 @router.get(
     "",
     response_model=list[TransactionResponse]
@@ -51,6 +56,7 @@ def get_transactions(
     query = db.query(Transaction)
 
     if agent_id is not None:
+
         if agent_id <= 0:
             raise HTTPException(
                 status_code=400,
@@ -73,6 +79,7 @@ def get_transactions(
         )
 
     if decision:
+
         decision = decision.upper()
 
         if decision not in {
@@ -105,6 +112,10 @@ def get_transactions(
         for transaction in transactions
     ]
 
+
+# ============================================================
+# AGENT TRANSACTION SUMMARY
+# ============================================================
 
 @router.get(
     "/agent/{agent_id}/summary"
@@ -177,6 +188,10 @@ def get_agent_transaction_summary(
     }
 
 
+# ============================================================
+# GET AGENT TRANSACTIONS
+# ============================================================
+
 @router.get(
     "/agent/{agent_id}",
     response_model=list[TransactionResponse]
@@ -213,6 +228,36 @@ def get_agent_transactions(
     ]
 
 
+# ============================================================
+# GET SINGLE TRANSACTION
+# ============================================================
+
+@router.get(
+    "/{transaction_id}",
+    response_model=TransactionResponse
+)
+def get_transaction(
+    transaction_id: int,
+    db: Session = Depends(get_db)
+):
+    transaction = db.get(
+        Transaction,
+        transaction_id
+    )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=404,
+            detail="Transaction not found"
+        )
+
+    return transaction_to_response(transaction)
+
+
+# ============================================================
+# TRANSACTION EXPLANATION
+# ============================================================
+
 @router.get(
     "/{transaction_id}/explanation",
     response_model=TransactionExplanation
@@ -243,6 +288,10 @@ def get_transaction_explanation(
         if transaction.reasons
         else []
     )
+
+    # --------------------------------------------------------
+    # CLASSIFY RISK FACTORS
+    # --------------------------------------------------------
 
     for reason in reasons:
 
@@ -275,26 +324,51 @@ def get_transaction_explanation(
             "message": reason
         })
 
+    # --------------------------------------------------------
+    # GENERATE DECISION SUMMARY
+    # --------------------------------------------------------
+
     if transaction.decision == "BLOCK":
+
         summary = (
-            "Transaction blocked due to one or more high-risk signals"
+            "Transaction blocked due to one or more "
+            "high-risk signals"
         )
 
     elif transaction.decision == "REVIEW":
+
         summary = (
-            "Transaction requires additional review before approval"
+            "Transaction requires additional review "
+            "before approval"
         )
 
     else:
+
         summary = (
-            "Transaction passed the current risk assessment"
+            "Transaction passed the current "
+            "risk assessment"
         )
+
+    # --------------------------------------------------------
+    # GENERATE EXPLANATION
+    # --------------------------------------------------------
+
+    ai_explanation = generate_ai_explanation(
+        decision=transaction.decision,
+        risk_score=transaction.risk_score,
+        risk_factors=risk_factors,
+    )
+
+    # --------------------------------------------------------
+    # RESPONSE
+    # --------------------------------------------------------
 
     return {
         "transaction_id": transaction.id,
         "decision": transaction.decision,
         "risk_score": transaction.risk_score,
         "summary": summary,
+        "ai_explanation": ai_explanation,
         "risk_factors": risk_factors,
         "evaluated_at": transaction.evaluated_at,
     }
