@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://127.0.0.1:8000";
 
 function SecurityEvents() {
+  const navigate = useNavigate();
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -77,12 +80,19 @@ function SecurityEvents() {
   };
 
   const formatEventType = (type) => {
-    if (!type) return "UNKNOWN";
+    if (!type) return "Unknown";
 
     return type
       .replaceAll("_", " ")
       .toLowerCase()
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  };
+
+  const getEventIcon = (type) => {
+    if (type === "TRANSACTION_BLOCKED") return "×";
+    if (type === "TRANSACTION_REVIEW") return "!";
+    if (type === "ANOMALY_DETECTED") return "⚠";
+    return "•";
   };
 
   if (loading) {
@@ -111,9 +121,9 @@ function SecurityEvents() {
   }
 
   return (
-    <div>
+    <div className="security-events-page">
 
-      {/* PAGE HEADER */}
+      {/* HEADER */}
 
       <div className="page-topbar">
 
@@ -143,10 +153,9 @@ function SecurityEvents() {
 
       {/* STATISTICS */}
 
-      <div className="stats-grid">
+      <div className="stats-grid security-stats">
 
         <div className="stat-card">
-
           <div className="stat-header">
             <span className="stat-title">
               Total Events
@@ -162,16 +171,12 @@ function SecurityEvents() {
           </div>
 
           <div className="stat-details">
-            <span>
-              Recorded security events
-            </span>
+            Recorded security events
           </div>
-
         </div>
 
 
-        <div className="stat-card">
-
+        <div className="stat-card security-stat-high">
           <div className="stat-header">
             <span className="stat-title">
               High Severity
@@ -186,17 +191,13 @@ function SecurityEvents() {
             {high}
           </div>
 
-          <div className="stat-details">
-            <span className="danger-text">
-              Requires attention
-            </span>
+          <div className="stat-details danger-text">
+            Requires attention
           </div>
-
         </div>
 
 
-        <div className="stat-card">
-
+        <div className="stat-card security-stat-medium">
           <div className="stat-header">
             <span className="stat-title">
               Medium Severity
@@ -212,16 +213,12 @@ function SecurityEvents() {
           </div>
 
           <div className="stat-details">
-            <span>
-              Monitoring required
-            </span>
+            Monitoring required
           </div>
-
         </div>
 
 
-        <div className="stat-card">
-
+        <div className="stat-card security-stat-low">
           <div className="stat-header">
             <span className="stat-title">
               Low Severity
@@ -236,18 +233,15 @@ function SecurityEvents() {
             {low}
           </div>
 
-          <div className="stat-details">
-            <span className="positive">
-              Normal activity
-            </span>
+          <div className="stat-details positive">
+            Normal activity
           </div>
-
         </div>
 
       </div>
 
 
-      {/* EVENT TYPE SUMMARY */}
+      {/* EVENT CLASSIFICATION */}
 
       <section className="panel security-events-summary">
 
@@ -264,7 +258,7 @@ function SecurityEvents() {
           </div>
 
           <span className="security-badge">
-            Live Monitoring
+            LIVE MONITORING
           </span>
 
         </div>
@@ -273,7 +267,6 @@ function SecurityEvents() {
         <div className="security-grid">
 
           <div className="security-item high">
-
             <span>
               Transactions Blocked
             </span>
@@ -281,12 +274,10 @@ function SecurityEvents() {
             <strong>
               {blocked}
             </strong>
-
           </div>
 
 
           <div className="security-item medium">
-
             <span>
               Transactions in Review
             </span>
@@ -294,12 +285,10 @@ function SecurityEvents() {
             <strong>
               {review}
             </strong>
-
           </div>
 
 
           <div className="security-item low">
-
             <span>
               Anomalies Detected
             </span>
@@ -307,7 +296,6 @@ function SecurityEvents() {
             <strong>
               {anomalies}
             </strong>
-
           </div>
 
         </div>
@@ -315,7 +303,7 @@ function SecurityEvents() {
       </section>
 
 
-      {/* SECURITY EVENT TABLE */}
+      {/* EVENT HISTORY */}
 
       <section className="panel">
 
@@ -338,7 +326,7 @@ function SecurityEvents() {
         </div>
 
 
-        <div className="transaction-table-wrapper">
+        <div className="security-event-table-wrapper">
 
           {events.length === 0 ? (
 
@@ -352,10 +340,9 @@ function SecurityEvents() {
 
           ) : (
 
-            <table className="transaction-table">
+            <table className="security-event-table">
 
               <thead>
-
                 <tr>
                   <th>ID</th>
                   <th>Event</th>
@@ -365,7 +352,6 @@ function SecurityEvents() {
                   <th>Message</th>
                   <th>Created At</th>
                 </tr>
-
               </thead>
 
 
@@ -373,24 +359,49 @@ function SecurityEvents() {
 
                 {events.map((event) => (
 
-                  <tr key={event.id}>
+                  <tr
+                    key={event.id}
+                    onClick={() =>
+                      navigate(`/security-events/${event.id}`)
+                    }
+                    className="security-event-row"
+                  >
 
                     <td>
-                      <span className="transaction-id">
+                      <button
+                        className="security-event-id"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(
+                            `/security-events/${event.id}`
+                          );
+                        }}
+                      >
                         #{event.id}
-                      </span>
+                      </button>
                     </td>
 
 
                     <td>
-                      <strong>
-                        {formatEventType(event.event_type)}
-                      </strong>
+                      <div className="event-type-cell">
+
+                        <span
+                          className={`event-type-icon ${getSeverityClass(
+                            event.severity
+                          )}`}
+                        >
+                          {getEventIcon(event.event_type)}
+                        </span>
+
+                        <strong>
+                          {formatEventType(event.event_type)}
+                        </strong>
+
+                      </div>
                     </td>
 
 
                     <td>
-
                       <span
                         className={`severity-badge ${getSeverityClass(
                           event.severity
@@ -398,29 +409,37 @@ function SecurityEvents() {
                       >
                         {event.severity || "N/A"}
                       </span>
-
                     </td>
 
 
                     <td>
                       <span className="agent-reference">
-                        Agent {event.agent_id}
+                        Agent #{event.agent_id}
                       </span>
                     </td>
 
 
                     <td>
+                      {event.transaction_id ? (
+                        <button
+                          className="security-transaction-link"
+                          onClick={(e) => {
+                            e.stopPropagation();
 
-                      <span className="transaction-id">
-                        {event.transaction_id
-                          ? `#${event.transaction_id}`
-                          : "—"}
-                      </span>
-
+                            navigate(
+                              `/transactions/${event.transaction_id}`
+                            );
+                          }}
+                        >
+                          #{event.transaction_id}
+                        </button>
+                      ) : (
+                        "—"
+                      )}
                     </td>
 
 
-                    <td className="event-message">
+                    <td className="security-event-message">
                       {event.message}
                     </td>
 
@@ -444,7 +463,7 @@ function SecurityEvents() {
       </section>
 
 
-      {/* EVENT DETAILS */}
+      {/* RECENT ACTIVITY */}
 
       <section className="panel">
 
@@ -470,6 +489,9 @@ function SecurityEvents() {
             <div
               className="security-activity"
               key={`activity-${event.id}`}
+              onClick={() =>
+                navigate(`/security-events/${event.id}`)
+              }
             >
 
               <div
@@ -477,7 +499,7 @@ function SecurityEvents() {
                   event.severity
                 )}`}
               >
-                !
+                {getEventIcon(event.event_type)}
               </div>
 
 
@@ -506,7 +528,7 @@ function SecurityEvents() {
 
 
                 <span className="activity-meta">
-                  Agent {event.agent_id}
+                  Agent #{event.agent_id}
                   {" • "}
                   {event.transaction_id
                     ? `Transaction #${event.transaction_id}`
@@ -516,6 +538,11 @@ function SecurityEvents() {
                 </span>
 
               </div>
+
+
+              <span className="activity-arrow">
+                →
+              </span>
 
             </div>
 

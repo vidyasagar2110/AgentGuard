@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -16,16 +15,11 @@ import AuditLogs from "./pages/AuditLogs";
 import AgentsPage from "./AgentsPage";
 import AgentDetails from "./pages/AgentDetails";
 import TransactionDetails from "./pages/TransactionDetails";
-
-
-
-const API_URL = "http://127.0.0.1:8000";
+import SecurityEventDetails from "./pages/SecurityEventDetails";
 
 
 function Layout() {
   const location = useLocation();
-
-  const isDashboard = location.pathname === "/";
 
   return (
     <div className="app">
@@ -34,6 +28,7 @@ function Layout() {
       <aside className="sidebar">
 
         <div className="brand">
+
           <div className="brand-icon">
             AG
           </div>
@@ -42,10 +37,13 @@ function Layout() {
             <h1>AgentGuard</h1>
             <span>Risk & Security</span>
           </div>
+
         </div>
+
 
         <nav className="navigation">
 
+          {/* MAIN */}
           <div className="nav-section">
 
             <span className="nav-label">
@@ -63,6 +61,7 @@ function Layout() {
               Dashboard
             </NavLink>
 
+
             <NavLink
               to="/agents"
               className={({ isActive }) =>
@@ -72,6 +71,7 @@ function Layout() {
               <span>◉</span>
               Agents
             </NavLink>
+
 
             <NavLink
               to="/transactions"
@@ -86,11 +86,13 @@ function Layout() {
           </div>
 
 
+          {/* SECURITY */}
           <div className="nav-section">
 
             <span className="nav-label">
               SECURITY
             </span>
+
 
             <NavLink
               to="/security-events"
@@ -101,6 +103,7 @@ function Layout() {
               <span>⚠</span>
               Security Events
             </NavLink>
+
 
             <NavLink
               to="/audit-logs"
@@ -117,6 +120,7 @@ function Layout() {
         </nav>
 
 
+        {/* Sidebar Footer */}
         <div className="sidebar-footer">
 
           <div className="system-status">
@@ -133,49 +137,70 @@ function Layout() {
       </aside>
 
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="main-content">
 
         <Routes>
 
+          {/* Dashboard */}
           <Route
             path="/"
             element={<Dashboard />}
           />
 
-         <Route
+
+          {/* Agents */}
+          <Route
             path="/agents"
             element={<AgentsPage />}
           />
 
-          <Route
-            path="/transactions"
-            element={<Transactions />}
-          />
 
-          <Route
-            path="/security-events"
-            element={<SecurityEvents />}
-          />
-
-          <Route
-            path="/audit-logs"
-            element={<AuditLogs />}
-          />
-
+          {/* Agent Details */}
           <Route
             path="/agents/:agentId"
             element={<AgentDetails />}
           />
 
+
+          {/* Transactions */}
           <Route
-  path="/transactions/:transactionId"
-  element={<TransactionDetails />}
-/>
+            path="/transactions"
+            element={<Transactions />}
+          />
+
+
+          {/* Transaction Details */}
+          <Route
+            path="/transactions/:transactionId"
+            element={<TransactionDetails />}
+          />
+
+
+          {/* Security Events */}
+          <Route
+            path="/security-events"
+            element={<SecurityEvents />}
+          />
+
+
+          {/* Security Event Details */}
+          <Route
+            path="/security-events/:eventId"
+            element={<SecurityEventDetails />}
+          />
+
+
+          {/* Audit Logs */}
+          <Route
+            path="/audit-logs"
+            element={<AuditLogs />}
+          />
 
         </Routes>
 
 
+        {/* Footer */}
         <footer className="footer">
           AgentGuard Security Platform
           <span>•</span>
