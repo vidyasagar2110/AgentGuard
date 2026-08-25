@@ -2114,3 +2114,234 @@
   text-decoration: underline;
   color: #79b5ff;
 }
+
+/* Anomaly Intelligence */
+
+.anomaly-panel {
+  overflow: hidden;
+}
+
+.anomaly-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.anomaly-summary-card {
+  padding: 18px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  background: var(--card-background, #ffffff);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.anomaly-summary-card span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.anomaly-summary-card strong {
+  font-size: 22px;
+}
+
+.anomaly-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anomaly-item {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.anomaly-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.anomaly-item.severity-high .anomaly-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.anomaly-item.severity-medium .anomaly-icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.anomaly-item.severity-low .anomaly-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.anomaly-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.anomaly-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.anomaly-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.anomaly-header strong {
+  font-size: 15px;
+}
+
+.anomaly-type {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.anomaly-details {
+  display: flex;
+  gap: 18px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.anomaly-content p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.severity-badge.severity-high {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.severity-badge.severity-medium {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.severity-badge.severity-low {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+@media (max-width: 900px) {
+  .anomaly-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .anomaly-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+/* Day 12 - Dark Anomaly Intelligence Theme */
+
+.anomaly-summary-card,
+.anomaly-item {
+  background: #111827;
+  border-color: #263246;
+  color: #f8fafc;
+}
+
+.anomaly-summary-card span,
+.anomaly-details,
+.anomaly-content p {
+  color: #8fa3c2;
+}
+
+.anomaly-summary-card strong {
+  color: #f8fafc;
+}
+
+.anomaly-item.severity-high {
+  background: #111827;
+  border-color: #263246;
+}
+
+.anomaly-item.severity-medium {
+  background: #111827;
+  border-color: #263246;
+}
+
+.anomaly-item.severity-low {
+  background: #111827;
+  border-color: #263246;
+}
+
+.anomaly-header strong {
+  color: #f8fafc;
+}
+
+.anomaly-type {
+  color: #8fa3c2;
+}
+
+.anomaly-details span:first-child {
+  color: #f8fafc;
+}
+
+.anomaly-details span:nth-child(2) {
+  color: #8fa3c2;
+}
+
+/* Severity icons */
+
+.anomaly-item.severity-high .anomaly-icon {
+  background: #450a0a;
+  color: #ff6b6b;
+}
+
+.anomaly-item.severity-medium .anomaly-icon {
+  background: #422006;
+  color: #fbbf24;
+}
+
+.anomaly-item.severity-low .anomaly-icon {
+  background: #052e16;
+  color: #4ade80;
+}
+
+/* Severity badges */
+
+.severity-badge.severity-high {
+  background: #450a0a;
+  color: #ff6b6b;
+  border: 1px solid #7f1d1d;
+}
+
+.severity-badge.severity-medium {
+  background: #422006;
+  color: #fbbf24;
+  border: 1px solid #92400e;
+}
+
+.severity-badge.severity-low {
+  background: #052e16;
+  color: #4ade80;
+  border: 1px solid #166534;
+}

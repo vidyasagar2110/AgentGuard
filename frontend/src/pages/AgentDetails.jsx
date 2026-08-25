@@ -10,105 +10,73 @@ function AgentDetails() {
   const [profile, setProfile] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [transactionSummary, setTransactionSummary] = useState(null);
+  const [anomalyReport, setAnomalyReport] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadProfile = async () => {
+  const loadAgentData = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const [
-        profileResponse,
-        transactionsResponse,
-        summaryResponse,
-      ] = await Promise.all([
-        fetch(
-          `${API_BASE_URL}/agents/${agentId}/risk-profile`
-        ),
-        fetch(
-          `${API_BASE_URL}/transactions/agent/${agentId}`
-        ),
-        fetch(
-          `${API_BASE_URL}/transactions/agent/${agentId}/summary`
-        ),
+      const [profileResponse, anomalyResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/agents/${agentId}/risk-profile`),
+        fetch(`${API_BASE_URL}/agents/${agentId}/anomalies`),
       ]);
 
-      if (
-        !profileResponse.ok ||
-        !transactionsResponse.ok ||
-        !summaryResponse.ok
-      ) {
-        throw new Error(
-          "Failed to load agent intelligence"
-        );
+      if (!profileResponse.ok) {
+        throw new Error("Failed to load agent profile");
+      }
+
+      if (!anomalyResponse.ok) {
+        throw new Error("Failed to load anomaly data");
       }
 
       const profileData = await profileResponse.json();
-      const transactionData =
-        await transactionsResponse.json();
-      const summaryData =
-        await summaryResponse.json();
+      const anomalyData = await anomalyResponse.json();
 
       setProfile(profileData);
-
-setTransactions(
-  Array.isArray(transactionData)
-    ? transactionData
-    : transactionData.value || []
-);
-
-setTransactionSummary(summaryData); 
+      setAnomalyReport(anomalyData);
     } catch (err) {
       console.error(err);
-      setError(
-        "Unable to load agent intelligence."
-      );
+      setError("Unable to load agent intelligence.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProfile();
+    loadAgentData();
   }, [agentId]);
 
-  const formatAmount = (amount) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 2,
-    }).format(amount);
-
-  const formatDate = (date) =>
-    new Date(date).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-
-  const getDecisionClass = (decision) => {
-    if (decision === "ALLOW") {
-      return "decision-allow";
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined) {
+      return "₹0";
     }
 
-    if (decision === "REVIEW") {
-      return "decision-review";
-    }
-
-    return "decision-block";
+    return `₹${Number(value).toLocaleString("en-IN")}`;
   };
 
-  const getRiskClass = (score) => {
-    if (score >= 70) {
-      return "risk-high";
-    }
+  const formatCategory = (category) => {
+    if (!category) return "—";
 
-    if (score >= 40) {
-      return "risk-medium";
-    }
+    return (
+      category.charAt(0).toUpperCase() +
+      category.slice(1).toLowerCase()
+    );
+  };
 
-    return "risk-low";
+  const getSeverityClass = (severity) => {
+    if (severity === "HIGH") return "severity-high";
+    if (severity === "MEDIUM") return "severity-medium";
+    return "severity-low";
+  };
+
+  const getSeverityIcon = (severity) => {
+    if (severity === "HIGH") return "!";
+    if (severity === "MEDIUM") return "!";
+    return "✓";
   };
 
   if (loading) {
@@ -129,7 +97,7 @@ setTransactionSummary(summaryData);
 
         <p>{error}</p>
 
-        <button onClick={loadProfile}>
+        <button onClick={loadAgentData}>
           Retry
         </button>
       </div>
@@ -139,6 +107,15 @@ setTransactionSummary(summaryData);
   if (!profile) {
     return null;
   }
+
+  const anomalies = anomalyReport?.anomalies || [];
+  const highAnomalies = anomalies.filter(
+    (anomaly) => anomaly.severity === "HIGH"
+  ).length;
+
+  const mediumAnomalies = anomalies.filter(
+    (anomaly) => anomaly.severity === "MEDIUM"
+  ).length;
 
   return (
     <div className="page-content">
@@ -167,7 +144,7 @@ setTransactionSummary(summaryData);
 
           <button
             className="refresh-button"
-            onClick={loadProfile}
+            onClick={loadAgentData}
           >
             ↻ Refresh
           </button>
@@ -207,7 +184,6 @@ setTransactionSummary(summaryData);
           </div>
 
         </div>
-
 
         <div className="profile-status-group">
 
@@ -304,7 +280,8 @@ setTransactionSummary(summaryData);
           </span>
 
           <strong className="warning-number large-number">
-            {profile.anomalies_detected}
+            {anomalyReport?.anomalies_detected ??
+              profile.anomalies_detected}
           </strong>
 
           <span className="intelligence-description">
@@ -340,56 +317,80 @@ setTransactionSummary(summaryData);
         <div className="behavior-grid">
 
           <div className="behavior-item">
-            <span>Total Spending</span>
+
+            <span>
+              Total Spending
+            </span>
 
             <strong>
-              ₹{profile.total_spending.toLocaleString("en-IN")}
+              {formatCurrency(profile.total_spending)}
             </strong>
+
           </div>
 
 
           <div className="behavior-item">
-            <span>Average Transaction</span>
+
+            <span>
+              Average Transaction
+            </span>
 
             <strong>
-              ₹{profile.average_transaction.toLocaleString("en-IN")}
+              {formatCurrency(profile.average_transaction)}
             </strong>
+
           </div>
 
 
           <div className="behavior-item">
-            <span>Maximum Transaction</span>
+
+            <span>
+              Maximum Transaction
+            </span>
 
             <strong>
-              ₹{profile.maximum_transaction.toLocaleString("en-IN")}
+              {formatCurrency(profile.maximum_transaction)}
             </strong>
+
           </div>
 
 
           <div className="behavior-item">
-            <span>Blocked Transactions</span>
+
+            <span>
+              Blocked Transactions
+            </span>
 
             <strong className="danger-number">
               {profile.blocked_transactions}
             </strong>
+
           </div>
 
 
           <div className="behavior-item">
-            <span>Review Transactions</span>
+
+            <span>
+              Review Transactions
+            </span>
 
             <strong className="warning-number">
               {profile.review_transactions}
             </strong>
+
           </div>
 
 
           <div className="behavior-item">
-            <span>Allowed Transactions</span>
+
+            <span>
+              Allowed Transactions
+            </span>
 
             <strong className="success-number">
               {profile.allowed_transactions}
             </strong>
+
           </div>
 
         </div>
@@ -397,214 +398,167 @@ setTransactionSummary(summaryData);
       </section>
 
 
-      {/* TRANSACTION ACTIVITY */}
+      {/* ANOMALY INTELLIGENCE */}
 
-      <section className="panel transaction-activity-panel">
+      <section className="panel anomaly-panel">
 
         <div className="panel-header">
 
           <div>
 
             <h3>
-              Transaction Activity
+              Anomaly Intelligence
             </h3>
 
             <p>
-              Transactions evaluated by the AgentGuard risk engine.
+              Transactions that deviate from the agent's
+              historical behavior.
             </p>
 
           </div>
 
           <span className="security-badge">
-            {transactions.length} Records
+            {anomalyReport?.anomalies_detected || 0} Detected
           </span>
 
         </div>
 
 
-        {/* TRANSACTION SUMMARY */}
+        <div className="anomaly-summary">
 
-        {transactionSummary && (
+          <div className="anomaly-summary-card">
 
-          <div className="transaction-summary-grid">
+            <span>
+              Baseline Average
+            </span>
 
-            <div className="transaction-summary-card">
+            <strong>
+              {formatCurrency(
+                anomalyReport?.baseline_average
+              )}
+            </strong>
 
-              <span>
-                Total Spending
-              </span>
-
-              <strong>
-                {formatAmount(
-                  transactionSummary.total_spending
-                )}
-              </strong>
-
-            </div>
+          </div>
 
 
-            <div className="transaction-summary-card">
+          <div className="anomaly-summary-card">
 
-              <span>
-                Average Transaction
-              </span>
+            <span>
+              High Severity
+            </span>
 
-              <strong>
-                {formatAmount(
-                  transactionSummary.average_transaction
-                )}
-              </strong>
+            <strong className="danger-number">
+              {highAnomalies}
+            </strong>
 
-            </div>
+          </div>
 
 
-            <div className="transaction-summary-card">
+          <div className="anomaly-summary-card">
 
-              <span>
-                Allowed
-              </span>
+            <span>
+              Medium Severity
+            </span>
 
-              <strong className="success-number">
-                {transactionSummary.allowed_transactions}
-              </strong>
+            <strong className="warning-number">
+              {mediumAnomalies}
+            </strong>
 
-            </div>
+          </div>
 
-
-            <div className="transaction-summary-card">
-
-              <span>
-                Review
-              </span>
-
-              <strong className="warning-number">
-                {transactionSummary.review_transactions}
-              </strong>
-
-            </div>
+        </div>
 
 
-            <div className="transaction-summary-card">
+        {anomalies.length === 0 ? (
 
-              <span>
-                Blocked
-              </span>
+          <div className="empty-state">
 
-              <strong className="danger-number">
-                {transactionSummary.blocked_transactions}
-              </strong>
+            No transaction anomalies detected.
 
-            </div>
+          </div>
+
+        ) : (
+
+          <div className="anomaly-list">
+
+            {anomalies.map((anomaly) => (
+
+              <div
+                className={`anomaly-item ${getSeverityClass(
+                  anomaly.severity
+                )}`}
+                key={anomaly.transaction_id}
+              >
+
+                <div className="anomaly-icon">
+
+                  {getSeverityIcon(anomaly.severity)}
+
+                </div>
+
+
+                <div className="anomaly-content">
+
+                  <div className="anomaly-header">
+
+                    <div>
+
+                      <strong>
+                        Transaction #{anomaly.transaction_id}
+                      </strong>
+
+                      <span className="anomaly-type">
+                        {anomaly.anomaly_type.replace(
+                          /_/g,
+                          " "
+                        )}
+                      </span>
+
+                    </div>
+
+
+                    <span
+                      className={`severity-badge ${getSeverityClass(
+                        anomaly.severity
+                      )}`}
+                    >
+                      {anomaly.severity}
+                    </span>
+
+                  </div>
+
+
+                  <div className="anomaly-details">
+
+                    <span>
+                      {formatCurrency(anomaly.amount)}
+                    </span>
+
+                    <span>
+                      {formatCategory(anomaly.category)}
+                    </span>
+
+                  </div>
+
+
+                  <p>
+                    {anomaly.reason}
+                  </p>
+
+                </div>
+
+              </div>
+
+            ))}
 
           </div>
 
         )}
 
-
-        {/* TRANSACTION TABLE */}
-
-        <div className="transaction-table-wrapper">
-
-          <table className="transaction-table">
-
-            <thead>
-
-              <tr>
-                <th>ID</th>
-                <th>Amount</th>
-                <th>Category</th>
-                <th>Decision</th>
-                <th>Risk</th>
-                <th>Evaluated At</th>
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              {transactions.map((transaction) => (
-
-                <tr key={transaction.id}>
-
-                  <td>
-
-                    <span className="transaction-id">
-                      #{transaction.id}
-                    </span>
-
-                  </td>
-
-
-                  <td>
-
-                    <strong className="amount">
-                      {formatAmount(
-                        transaction.amount
-                      )}
-                    </strong>
-
-                  </td>
-
-
-                  <td>
-  <span className="category-badge">
-    {transaction.category
-      ? transaction.category.charAt(0).toUpperCase() +
-        transaction.category.slice(1).toLowerCase()
-      : "—"}
-  </span>
-</td>
-
-
-                  <td>
-
-                    <span
-                      className={`decision-badge ${getDecisionClass(
-                        transaction.decision
-                      )}`}
-                    >
-                      {transaction.decision}
-                    </span>
-
-                  </td>
-
-
-                  <td>
-
-                    <span
-                      className={`risk-score ${getRiskClass(
-                        transaction.risk_score
-                      )}`}
-                    >
-                      {transaction.risk_score}
-                    </span>
-
-                  </td>
-
-
-                  <td className="date-cell">
-
-                    {formatDate(
-                      transaction.evaluated_at
-                    )}
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
       </section>
 
 
-      {/* RATES */}
+      {/* RISK METRICS */}
 
       <section className="panel">
 
@@ -687,7 +641,8 @@ setTransactionSummary(summaryData);
             </h3>
 
             <p>
-              Recommendation generated by the AgentGuard risk engine.
+              Recommendation generated by the AgentGuard
+              risk engine.
             </p>
 
           </div>
@@ -712,8 +667,9 @@ setTransactionSummary(summaryData);
             </strong>
 
             <p>
-              AgentGuard recommends continued monitoring based
-              on the current risk and behavioral profile.
+              AgentGuard recommends continued monitoring
+              based on the current risk and behavioral
+              profile.
             </p>
 
           </div>
