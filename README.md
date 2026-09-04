@@ -200,7 +200,4 @@ fa1f86a Complete AgentGuard ML integration and dashboard polish
 The local branch was one commit ahead of `origin/main` at the time of
 the checkpoint.
 
-## Notes
 
-`frontend/src/pages/Dashboard.backup.jsx` is intentionally kept out of
-the production Git checkpoint as a local backup copy.
