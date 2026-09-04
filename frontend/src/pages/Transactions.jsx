@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import "./../App.css";
+
 const API_URL = "http://127.0.0.1:8000";
 
 function Transactions() {
@@ -9,6 +11,10 @@ function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ============================================================
+  // FETCH TRANSACTIONS
+  // ============================================================
 
   const fetchTransactions = async () => {
     try {
@@ -40,6 +46,10 @@ function Transactions() {
     fetchTransactions();
   }, []);
 
+  // ============================================================
+  // TRANSACTION STATISTICS
+  // ============================================================
+
   const allowed = transactions.filter(
     (transaction) => transaction.decision === "ALLOW"
   ).length;
@@ -52,32 +62,30 @@ function Transactions() {
     (transaction) => transaction.decision === "BLOCK"
   ).length;
 
+  // ============================================================
+  // FORMATTERS
+  // ============================================================
+
   const formatAmount = (amount) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
-    }).format(amount || 0);
+    }).format(Number(amount) || 0);
 
   const formatDate = (date) => {
     if (!date) return "—";
 
-    return new Date(date).toLocaleString("en-IN", {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "—";
+    }
+
+    return parsedDate.toLocaleString("en-IN", {
       dateStyle: "medium",
       timeStyle: "short",
     });
-  };
-
-  const getDecisionClass = (decision) => {
-    if (decision === "ALLOW") return "decision-allow";
-    if (decision === "REVIEW") return "decision-review";
-    return "decision-block";
-  };
-
-  const getRiskClass = (score) => {
-    if (score >= 70) return "risk-high";
-    if (score >= 40) return "risk-medium";
-    return "risk-low";
   };
 
   const formatCategory = (category) => {
@@ -89,6 +97,320 @@ function Transactions() {
     );
   };
 
+  // ============================================================
+  // DECISION / RISK HELPERS
+  // ============================================================
+
+  const getDecisionClass = (decision) => {
+    if (decision === "ALLOW") return "decision-allow";
+    if (decision === "REVIEW") return "decision-review";
+    return "decision-block";
+  };
+
+  const getRiskClass = (score) => {
+    const numericScore = Number(score) || 0;
+
+    if (numericScore >= 70) return "risk-high";
+    if (numericScore >= 40) return "risk-medium";
+
+    return "risk-low";
+  };
+
+  // ============================================================
+  // ML HELPERS
+  // ============================================================
+
+  const getMLLabelClass = (label) => {
+    if (label === "HIGH") return "risk-high";
+    if (label === "MEDIUM") return "risk-medium";
+
+    return "risk-low";
+  };
+
+  const getMLStatus = (transaction) => {
+    if (transaction.ml_available === false) {
+      return "INSUFFICIENT DATA";
+    }
+
+    if (transaction.ml_anomaly_detected === true) {
+      return "ANOMALY DETECTED";
+    }
+
+    if (transaction.ml_available === true) {
+      return "NORMAL";
+    }
+
+    return "NOT AVAILABLE";
+  };
+
+  const getMLStatusClass = (transaction) => {
+    if (transaction.ml_available === false) {
+      return "ml-status-unavailable";
+    }
+
+    if (transaction.ml_anomaly_detected === true) {
+      return "ml-status-anomaly";
+    }
+
+    if (transaction.ml_available === true) {
+      return "ml-status-normal";
+    }
+
+    return "ml-status-unavailable";
+  };
+
+  const getMLDetection = (transaction) => {
+    if (transaction.ml_anomaly_detected === true) {
+      return "Anomaly";
+    }
+
+    if (transaction.ml_available === true) {
+      return "Normal";
+    }
+
+    return "—";
+  };
+
+
+  const transactionPolishStyles = `
+    .transaction-reasons-panel {
+      margin-top: 24px;
+    }
+
+    .transaction-details-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .transaction-detail {
+      padding: 24px 0;
+      border-top: 1px solid #1f2937;
+    }
+
+    .transaction-detail:first-child {
+      border-top: 0;
+    }
+
+    .transaction-detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 14px;
+    }
+
+    .transaction-detail-header > div:first-child {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .transaction-detail-header > div:first-child > strong {
+      display: block;
+      line-height: 1.35;
+    }
+
+    .transaction-detail-header > div:first-child > span {
+      display: block;
+      color: #718096;
+      line-height: 1.5;
+    }
+
+    .reason-list {
+      margin: 0 0 22px;
+      padding-left: 22px;
+      line-height: 1.65;
+    }
+
+    .reason-list li {
+      margin: 3px 0;
+    }
+
+    .no-reasons {
+      margin: 0 0 22px;
+      color: #718096;
+    }
+
+    .ml-analysis {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 18px;
+      padding: 20px;
+      border: 1px solid #263247;
+      border-radius: 10px;
+      background: rgba(17, 24, 39, 0.55);
+    }
+
+    .ml-analysis-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .ml-eyebrow {
+      display: block;
+      margin-bottom: 6px;
+      color: #718096;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .ml-analysis-header h4 {
+      margin: 0;
+      line-height: 1.35;
+    }
+
+    .ml-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-height: 30px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .ml-status-normal {
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.28);
+    }
+
+    .ml-status-anomaly {
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.28);
+    }
+
+    .ml-status-unavailable {
+      color: #94a3b8;
+      background: rgba(148, 163, 184, 0.10);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+    }
+
+    .ml-analysis-grid {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .ml-metric {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start;
+      justify-content: flex-start;
+      min-width: 0;
+      min-height: 105px;
+      box-sizing: border-box;
+      padding: 14px;
+      border: 1px solid #263247;
+      border-radius: 8px;
+      background: #0b111b;
+    }
+
+    .ml-metric-label,
+    .ml-metric-description,
+    .ml-explanation-label {
+      display: block;
+    }
+
+    .ml-metric-label {
+      display: block !important;
+      width: 100%;
+      margin-bottom: 8px;
+      color: #718096;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .ml-metric-value {
+      display: block !important;
+      width: 100%;
+      margin: 0 0 7px;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .ml-metric .risk-score {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      margin-bottom: 7px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .ml-metric-description {
+      display: block !important;
+      width: 100%;
+      margin-top: auto;
+      color: #64748b;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .ml-explanation {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #1f2937;
+    }
+
+    .ml-explanation-label {
+      margin-bottom: 7px;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .ml-explanation p {
+      display: block !important;
+      margin: 0;
+      color: #8fa3bf;
+      font-size: 12px;
+      line-height: 1.65;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 800px) {
+      .ml-analysis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .transaction-detail-header,
+      .ml-analysis-header {
+        flex-direction: column;
+      }
+
+      .ml-status {
+        align-self: flex-start;
+      }
+    }
+  `;
+
+  // ============================================================
+  // LOADING STATE
+  // ============================================================
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -97,6 +419,10 @@ function Transactions() {
       </div>
     );
   }
+
+  // ============================================================
+  // ERROR STATE
+  // ============================================================
 
   if (error) {
     return (
@@ -114,10 +440,17 @@ function Transactions() {
     );
   }
 
+  // ============================================================
+  // PAGE
+  // ============================================================
+
   return (
     <div>
+      <style>{transactionPolishStyles}</style>
 
-      {/* PAGE HEADER */}
+      {/* ========================================================
+          PAGE HEADER
+      ======================================================== */}
 
       <div className="page-topbar">
 
@@ -138,6 +471,7 @@ function Transactions() {
         <button
           className="refresh-button"
           onClick={fetchTransactions}
+          disabled={loading}
         >
           ↻ Refresh
         </button>
@@ -145,7 +479,9 @@ function Transactions() {
       </div>
 
 
-      {/* STATISTICS */}
+      {/* ========================================================
+          STATISTICS
+      ======================================================== */}
 
       <div className="stats-grid">
 
@@ -267,7 +603,9 @@ function Transactions() {
       </div>
 
 
-      {/* TRANSACTION HISTORY */}
+      {/* ========================================================
+          TRANSACTION HISTORY
+      ======================================================== */}
 
       <section className="panel transactions-panel">
 
@@ -286,7 +624,8 @@ function Transactions() {
           </div>
 
           <span className="security-badge">
-            {transactions.length} Records
+            {transactions.length}{" "}
+            {transactions.length === 1 ? "Record" : "Records"}
           </span>
 
         </div>
@@ -333,7 +672,7 @@ function Transactions() {
 
                   <tr key={transaction.id}>
 
-                    {/* CLICKABLE TRANSACTION ID */}
+                    {/* TRANSACTION ID */}
 
                     <td>
 
@@ -344,6 +683,7 @@ function Transactions() {
                             `/transactions/${transaction.id}`
                           )
                         }
+                        title={`View transaction ${transaction.id}`}
                       >
                         #{transaction.id}
                       </button>
@@ -408,7 +748,7 @@ function Transactions() {
                           transaction.risk_score
                         )}`}
                       >
-                        {transaction.risk_score}
+                        {transaction.risk_score ?? "—"}
                       </span>
 
                     </td>
@@ -439,7 +779,9 @@ function Transactions() {
       </section>
 
 
-      {/* RISK ASSESSMENT DETAILS */}
+      {/* ========================================================
+          RISK ASSESSMENT DETAILS
+      ======================================================== */}
 
       <section className="panel transaction-reasons-panel">
 
@@ -452,7 +794,7 @@ function Transactions() {
             </h3>
 
             <p>
-              Reasons generated by the transaction risk engine.
+              Policy, behavioral, statistical, and machine-learning risk signals.
             </p>
 
           </div>
@@ -469,6 +811,10 @@ function Transactions() {
               key={transaction.id}
             >
 
+              {/* ==================================================
+                  TRANSACTION HEADER
+              ================================================== */}
+
               <div className="transaction-detail-header">
 
                 <div>
@@ -478,7 +824,8 @@ function Transactions() {
                   </strong>
 
                   <span>
-                    {formatCategory(transaction.category)} •{" "}
+                    {formatCategory(transaction.category)}{" "}
+                    •{" "}
                     {formatAmount(transaction.amount)}
                   </span>
 
@@ -496,6 +843,10 @@ function Transactions() {
               </div>
 
 
+              {/* ==================================================
+                  EXISTING RISK REASONS
+              ================================================== */}
+
               {transaction.reasons &&
               transaction.reasons.length > 0 ? (
 
@@ -504,7 +855,7 @@ function Transactions() {
                   {transaction.reasons.map(
                     (reason, index) => (
 
-                      <li key={index}>
+                      <li key={`${transaction.id}-reason-${index}`}>
                         {reason}
                       </li>
 
@@ -520,6 +871,141 @@ function Transactions() {
                 </p>
 
               )}
+
+
+              {/* ==================================================
+                  MACHINE LEARNING ANALYSIS
+              ================================================== */}
+
+              <div className="ml-analysis">
+
+                <div className="ml-analysis-header">
+
+                  <div>
+
+                    <span className="ml-eyebrow">
+                      MACHINE LEARNING
+                    </span>
+
+                    <h4>
+                      Isolation Forest Analysis
+                    </h4>
+
+                  </div>
+
+
+                  <span
+                    className={`ml-status ${getMLStatusClass(
+                      transaction
+                    )}`}
+                  >
+                    {getMLStatus(transaction)}
+                  </span>
+
+                </div>
+
+
+                {/* ML METRICS */}
+
+                <div className="ml-analysis-grid">
+
+                  {/* ML SCORE */}
+
+                  <div className="ml-metric">
+
+                    <span className="ml-metric-label">
+                      ML Anomaly Score
+                    </span>
+
+                    <strong className="ml-metric-value">
+
+                      {transaction.ml_score !== undefined &&
+                      transaction.ml_score !== null
+                        ? Number(transaction.ml_score).toFixed(2)
+                        : "—"}
+
+                    </strong>
+
+                    <span className="ml-metric-description">
+                      0 = normal • 100 = highly unusual
+                    </span>
+
+                  </div>
+
+
+                  {/* ML LABEL */}
+
+                  <div className="ml-metric">
+
+                    <span className="ml-metric-label">
+                      ML Risk Level
+                    </span>
+
+                    {transaction.ml_label ? (
+
+                      <span
+                        className={`risk-score ${getMLLabelClass(
+                          transaction.ml_label
+                        )}`}
+                      >
+                        {transaction.ml_label}
+                      </span>
+
+                    ) : (
+
+                      <strong className="ml-metric-value">
+                        —
+                      </strong>
+
+                    )}
+
+                    <span className="ml-metric-description">
+                      Isolation Forest classification
+                    </span>
+
+                  </div>
+
+
+                  {/* ML ANOMALY */}
+
+                  <div className="ml-metric">
+
+                    <span className="ml-metric-label">
+                      Detection
+                    </span>
+
+                    <strong className="ml-metric-value">
+                      {getMLDetection(transaction)}
+                    </strong>
+
+                    <span className="ml-metric-description">
+                      Statistical behavior signal
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                {/* ML EXPLANATION */}
+
+                <div className="ml-explanation">
+
+                  <span className="ml-explanation-label">
+                    ML Explanation
+                  </span>
+
+                  <p>
+
+                    {transaction.ml_reason
+                      ? transaction.ml_reason
+                      : "ML analysis details will appear here when this transaction is assessed through the ML risk pipeline."}
+
+                  </p>
+
+                </div>
+
+              </div>
 
             </div>
 

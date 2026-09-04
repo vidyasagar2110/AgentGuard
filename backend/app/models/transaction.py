@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Float
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -44,6 +44,34 @@ class Transaction(Base):
         Text,
         nullable=True
     )
+
+    # -----------------------------------------
+    # MACHINE LEARNING ANOMALY DATA
+    # -----------------------------------------
+
+    ml_anomaly_detected: Mapped[bool] = mapped_column(
+        nullable=False,
+        default=False
+    )
+
+    ml_score: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True
+    )
+
+    ml_label: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True
+    )
+
+    ml_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True
+    )
+
+    # -----------------------------------------
+    # TIMESTAMP
+    # -----------------------------------------
 
     evaluated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

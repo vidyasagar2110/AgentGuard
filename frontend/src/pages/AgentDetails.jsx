@@ -318,29 +318,25 @@ function AgentDetails() {
         <div className="behavior-grid">
 
           <div className="behavior-item">
+  <span>
+    Non-Blocked Spending
+  </span>
 
-            <span>
-              Total Spending
-            </span>
-
-            <strong>
-              {formatCurrency(profile.total_spending)}
-            </strong>
-
-          </div>
+  <strong>
+    {formatCurrency(profile.total_spending)}
+  </strong>
+</div>
 
 
-          <div className="behavior-item">
+<div className="behavior-item">
+  <span>
+    Average Non-Blocked Transaction
+  </span>
 
-            <span>
-              Average Transaction
-            </span>
-
-            <strong>
-              {formatCurrency(profile.average_transaction)}
-            </strong>
-
-          </div>
+  <strong>
+    {formatCurrency(profile.average_transaction)}
+  </strong>
+</div>
 
 
           <div className="behavior-item">

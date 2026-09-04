@@ -97,7 +97,55 @@ function TransactionDetails() {
     if (type === "POLICY") return "◆";
     if (type === "BEHAVIOR") return "◉";
     if (type === "ANOMALY") return "⚠";
+    if (type === "ML") return "✦";
     return "!";
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * MACHINE LEARNING STATUS
+   * ---------------------------------------------------------
+   */
+
+  const mlAvailable =
+    transaction &&
+    transaction.ml_label &&
+    transaction.ml_label !== "NOT_AVAILABLE";
+
+  const mlAnomaly =
+    transaction?.ml_anomaly_detected === true;
+
+  const mlScore =
+    typeof transaction?.ml_score === "number"
+      ? transaction.ml_score
+      : null;
+
+  const getMLStatusText = () => {
+    if (!mlAvailable) {
+      return "NOT AVAILABLE";
+    }
+
+    if (mlAnomaly) {
+      return "ANOMALY DETECTED";
+    }
+
+    return "NORMAL";
+  };
+
+  const getMLStatusClass = () => {
+    if (!mlAvailable) {
+      return "severity-low";
+    }
+
+    if (mlAnomaly) {
+      if (transaction.ml_label === "HIGH") {
+        return "severity-high";
+      }
+
+      return "severity-medium";
+    }
+
+    return "severity-low";
   };
 
   if (loading) {
@@ -275,6 +323,7 @@ function TransactionDetails() {
 
           <div className="explanation-loading">
             <div className="spinner"></div>
+
             <span>
               Generating explanation...
             </span>
@@ -299,6 +348,219 @@ function TransactionDetails() {
           <div className="explanation-empty">
             Explanation is currently unavailable.
           </div>
+
+        )}
+
+      </section>
+
+
+      {/* =====================================================
+          MACHINE LEARNING ANALYSIS
+          ===================================================== */}
+
+      <section className="panel">
+
+        <div className="panel-header">
+
+          <div>
+
+            <p
+              className="eyebrow"
+              style={{ marginBottom: "6px" }}
+            >
+              MACHINE LEARNING
+            </p>
+
+            <h3>
+              Isolation Forest Analysis
+            </h3>
+
+            <p>
+              Machine-learning signal generated from the
+              agent's historical transaction behavior.
+            </p>
+
+          </div>
+
+          <span
+            className={`severity-badge ${getMLStatusClass()}`}
+          >
+            {getMLStatusText()}
+          </span>
+
+        </div>
+
+
+        {!mlAvailable ? (
+
+          /* -------------------------------------------------
+             OLD TRANSACTION
+             ------------------------------------------------- */
+
+          <div
+            className="explanation-empty"
+            style={{
+              padding: "28px",
+              textAlign: "center",
+            }}
+          >
+
+            <div
+              style={{
+                fontSize: "30px",
+                marginBottom: "12px",
+                opacity: 0.7,
+              }}
+            >
+              ◌
+            </div>
+
+            <strong>
+              ML analysis was not available when this
+              transaction was evaluated.
+            </strong>
+
+            <p
+              style={{
+                marginTop: "8px",
+                marginBottom: 0,
+              }}
+            >
+              This is a historical transaction that was
+              evaluated before the machine-learning pipeline
+              was enabled.
+            </p>
+
+          </div>
+
+        ) : (
+
+          /* -------------------------------------------------
+             NEW TRANSACTION WITH ML RESULT
+             ------------------------------------------------- */
+
+          <>
+
+            <div
+              className="event-details-grid"
+              style={{ marginTop: "20px" }}
+            >
+
+              {/* ML SCORE */}
+
+              <div className="event-detail-card">
+
+                <span>
+                  ML Anomaly Score
+                </span>
+
+                <strong
+                  style={{
+                    fontSize: "24px",
+                  }}
+                >
+                  {mlScore !== null
+                    ? mlScore.toFixed(2)
+                    : "—"}
+                </strong>
+
+                <small
+                  style={{
+                    marginTop: "6px",
+                    display: "block",
+                  }}
+                >
+                  0 = normal • 100 = highly unusual
+                </small>
+
+              </div>
+
+
+              {/* ML LABEL */}
+
+              <div className="event-detail-card">
+
+                <span>
+                  ML Risk Level
+                </span>
+
+                <strong>
+                  {transaction.ml_label || "—"}
+                </strong>
+
+                <small
+                  style={{
+                    marginTop: "6px",
+                    display: "block",
+                  }}
+                >
+                  Isolation Forest classification
+                </small>
+
+              </div>
+
+
+              {/* DETECTION */}
+
+              <div className="event-detail-card">
+
+                <span>
+                  Detection
+                </span>
+
+                <strong>
+                  {mlAnomaly
+                    ? "ANOMALY DETECTED"
+                    : "NO ANOMALY"}
+                </strong>
+
+                <small
+                  style={{
+                    marginTop: "6px",
+                    display: "block",
+                  }}
+                >
+                  Statistical behavior signal
+                </small>
+
+              </div>
+
+            </div>
+
+
+            {/* ML EXPLANATION */}
+
+            <div
+              className="explanation-content"
+              style={{
+                marginTop: "20px",
+              }}
+            >
+
+              <div className="explanation-icon">
+                ✦
+              </div>
+
+              <div>
+
+                <strong>
+                  ML Explanation
+                </strong>
+
+                <p
+                  style={{
+                    marginTop: "8px",
+                  }}
+                >
+                  {transaction.ml_reason ||
+                    "No ML explanation available."}
+                </p>
+
+              </div>
+
+            </div>
+
+          </>
 
         )}
 

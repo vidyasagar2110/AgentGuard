@@ -17,25 +17,68 @@ router = APIRouter(
 )
 
 
+# ============================================================
+# TRANSACTION RESPONSE FORMATTER
+# ============================================================
+
 def transaction_to_response(
     transaction: Transaction
 ) -> dict:
+
+    reasons = (
+        [
+            reason.strip()
+            for reason in transaction.reasons.split(",")
+            if reason.strip()
+        ]
+        if transaction.reasons
+        else []
+    )
+
     return {
         "id": transaction.id,
+
         "agent_id": transaction.agent_id,
+
         "amount": transaction.amount,
+
         "category": transaction.category,
+
         "decision": transaction.decision,
+
         "risk_score": transaction.risk_score,
-        "reasons": (
-            [
-                reason.strip()
-                for reason in transaction.reasons.split(",")
-                if reason.strip()
-            ]
-            if transaction.reasons
-            else []
+
+        "reasons": reasons,
+
+        # -----------------------------------------
+        # MACHINE LEARNING
+        # -----------------------------------------
+
+        "ml_anomaly_detected": bool(
+            transaction.ml_anomaly_detected
         ),
+
+        "ml_score": (
+            transaction.ml_score
+            if transaction.ml_score is not None
+            else 0.0
+        ),
+
+        "ml_label": (
+            transaction.ml_label
+            if transaction.ml_label
+            else "NOT_AVAILABLE"
+        ),
+
+        "ml_reason": (
+            transaction.ml_reason
+            if transaction.ml_reason
+            else (
+                "ML analysis was not available "
+                "when this transaction was evaluated"
+            )
+        ),
+
         "evaluated_at": transaction.evaluated_at,
     }
 
@@ -53,7 +96,12 @@ def get_transactions(
     decision: str | None = None,
     db: Session = Depends(get_db)
 ):
+
     query = db.query(Transaction)
+
+    # -----------------------------------------
+    # FILTER BY AGENT
+    # -----------------------------------------
 
     if agent_id is not None:
 
@@ -78,6 +126,10 @@ def get_transactions(
             Transaction.agent_id == agent_id
         )
 
+    # -----------------------------------------
+    # FILTER BY DECISION
+    # -----------------------------------------
+
     if decision:
 
         decision = decision.upper()
@@ -98,6 +150,10 @@ def get_transactions(
         query = query.filter(
             Transaction.decision == decision
         )
+
+    # -----------------------------------------
+    # FETCH
+    # -----------------------------------------
 
     transactions = (
         query
@@ -124,6 +180,7 @@ def get_agent_transaction_summary(
     agent_id: int,
     db: Session = Depends(get_db)
 ):
+
     agent = db.get(
         Agent,
         agent_id
@@ -143,7 +200,9 @@ def get_agent_transaction_summary(
         .all()
     )
 
-    total_transactions = len(transactions)
+    total_transactions = len(
+        transactions
+    )
 
     total_spending = sum(
         transaction.amount
@@ -176,14 +235,20 @@ def get_agent_transaction_summary(
 
     return {
         "agent_id": agent_id,
+
         "total_transactions": total_transactions,
+
         "total_spending": total_spending,
+
         "average_transaction": round(
             average_transaction,
             2
         ),
+
         "allowed_transactions": allowed,
+
         "review_transactions": reviews,
+
         "blocked_transactions": blocked
     }
 
@@ -200,6 +265,7 @@ def get_agent_transactions(
     agent_id: int,
     db: Session = Depends(get_db)
 ):
+
     agent = db.get(
         Agent,
         agent_id
@@ -240,6 +306,7 @@ def get_transaction(
     transaction_id: int,
     db: Session = Depends(get_db)
 ):
+
     transaction = db.get(
         Transaction,
         transaction_id
@@ -251,7 +318,9 @@ def get_transaction(
             detail="Transaction not found"
         )
 
-    return transaction_to_response(transaction)
+    return transaction_to_response(
+        transaction
+    )
 
 
 # ============================================================
@@ -266,6 +335,7 @@ def get_transaction_explanation(
     transaction_id: int,
     db: Session = Depends(get_db)
 ):
+
     transaction = db.get(
         Transaction,
         transaction_id
@@ -303,18 +373,27 @@ def get_transaction_explanation(
             or "daily spending" in reason_lower
             or "allowed categories" in reason_lower
         ):
+
             factor_type = "POLICY"
             severity = "HIGH"
 
         elif "behavioral" in reason_lower:
+
             factor_type = "BEHAVIOR"
             severity = "HIGH"
 
         elif "historical average" in reason_lower:
+
             factor_type = "ANOMALY"
             severity = "HIGH"
 
+        elif "ml anomaly" in reason_lower:
+
+            factor_type = "MACHINE_LEARNING"
+            severity = "MEDIUM"
+
         else:
+
             factor_type = "RISK"
             severity = "MEDIUM"
 
@@ -322,6 +401,29 @@ def get_transaction_explanation(
             "type": factor_type,
             "severity": severity,
             "message": reason
+        })
+
+    # --------------------------------------------------------
+    # ADD ML RISK FACTOR
+    # --------------------------------------------------------
+
+    if transaction.ml_anomaly_detected:
+
+        risk_factors.append({
+            "type": "MACHINE_LEARNING",
+            "severity": (
+                transaction.ml_label
+                if transaction.ml_label
+                in {"LOW", "MEDIUM", "HIGH"}
+                else "MEDIUM"
+            ),
+            "message": (
+                transaction.ml_reason
+                or (
+                    "Isolation Forest identified "
+                    "unusual transaction behavior"
+                )
+            )
         })
 
     # --------------------------------------------------------
@@ -350,7 +452,7 @@ def get_transaction_explanation(
         )
 
     # --------------------------------------------------------
-    # GENERATE EXPLANATION
+    # GENERATE AI EXPLANATION
     # --------------------------------------------------------
 
     ai_explanation = generate_ai_explanation(
@@ -365,10 +467,16 @@ def get_transaction_explanation(
 
     return {
         "transaction_id": transaction.id,
+
         "decision": transaction.decision,
+
         "risk_score": transaction.risk_score,
+
         "summary": summary,
+
         "ai_explanation": ai_explanation,
+
         "risk_factors": risk_factors,
+
         "evaluated_at": transaction.evaluated_at,
     }

@@ -23,8 +23,18 @@ class RiskAssessmentResponse(BaseModel):
     category: str
     decision: str
     risk_score: int
+
     agent_risk_level: str
     agent_risk_score: int
+
     anomaly_detected: bool
     anomaly_severity: str | None
+
+    # Machine Learning
+    ml_anomaly_detected: bool
+    ml_available: bool
+    ml_score: float | None
+    ml_label: str | None
+    ml_reason: str | None
+
     reasons: list[str]

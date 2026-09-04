@@ -187,7 +187,6 @@ def get_high_risk_agents(
     return high_risk_agents
 
 
-
 @router.get("/risk-summary")
 def get_risk_summary(
     db: Session = Depends(get_db)
@@ -223,6 +222,7 @@ def get_risk_summary(
             summary["low_risk"] += 1
 
     return summary
+
 
 @router.get("/risk-agents")
 def get_risk_agents(
@@ -329,6 +329,7 @@ def get_recent_activity(
 
     return activities[:limit]
 
+
 @router.get("/security-summary")
 def get_security_summary(
     db: Session = Depends(get_db)
@@ -378,10 +379,14 @@ def get_security_summary(
         .count()
     )
 
+    # Count both traditional anomaly events and ML anomaly events.
     anomaly_events = (
         db.query(SecurityEvent)
         .filter(
-            SecurityEvent.event_type == "ANOMALY_DETECTED"
+            SecurityEvent.event_type.in_([
+                "ANOMALY_DETECTED",
+                "ML_ANOMALY_DETECTED"
+            ])
         )
         .count()
     )
@@ -394,4 +399,104 @@ def get_security_summary(
         "blocked_events": blocked_events,
         "review_events": review_events,
         "anomaly_events": anomaly_events
+    }
+
+
+# ============================================================
+# MACHINE LEARNING DASHBOARD INTELLIGENCE
+# ============================================================
+
+@router.get("/ml-summary")
+def get_ml_summary(
+    db: Session = Depends(get_db)
+):
+    transactions = (
+        db.query(Transaction)
+        .all()
+    )
+
+    ml_analyzed = [
+        transaction
+        for transaction in transactions
+        if transaction.ml_label is not None
+    ]
+
+    ml_anomalies = [
+        transaction
+        for transaction in ml_analyzed
+        if transaction.ml_anomaly_detected
+    ]
+
+    high_risk = [
+        transaction
+        for transaction in ml_analyzed
+        if transaction.ml_label == "HIGH"
+    ]
+
+    medium_risk = [
+        transaction
+        for transaction in ml_analyzed
+        if transaction.ml_label == "MEDIUM"
+    ]
+
+    low_risk = [
+        transaction
+        for transaction in ml_analyzed
+        if transaction.ml_label == "LOW"
+    ]
+
+    scores = [
+        float(transaction.ml_score)
+        for transaction in ml_analyzed
+        if transaction.ml_score is not None
+    ]
+
+    average_ml_score = (
+        sum(scores) / len(scores)
+        if scores
+        else 0
+    )
+
+    latest_anomalies = sorted(
+        ml_anomalies,
+        key=lambda transaction: transaction.evaluated_at,
+        reverse=True
+    )[:5]
+
+    return {
+        "total_transactions": len(transactions),
+
+        "ml_analyzed_transactions": len(
+            ml_analyzed
+        ),
+
+        "ml_anomalies_detected": len(
+            ml_anomalies
+        ),
+
+        "high_risk": len(high_risk),
+
+        "medium_risk": len(medium_risk),
+
+        "low_risk": len(low_risk),
+
+        "average_ml_score": round(
+            average_ml_score,
+            2
+        ),
+
+        "latest_anomalies": [
+            {
+                "transaction_id": transaction.id,
+                "agent_id": transaction.agent_id,
+                "amount": transaction.amount,
+                "category": transaction.category,
+                "decision": transaction.decision,
+                "ml_score": transaction.ml_score,
+                "ml_label": transaction.ml_label,
+                "ml_reason": transaction.ml_reason,
+                "evaluated_at": transaction.evaluated_at,
+            }
+            for transaction in latest_anomalies
+        ]
     }
